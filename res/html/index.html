@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+	<head>
+
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=0"/>
+		<meta name="theme-color" content="#000000">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="mobile-web-app-capable" content="yes">
+
+		<title>SODA</title>
+
+		<link rel="stylesheet" href="soda.css" media="screen">
+
+		<script src="soda.js" defer></script>
+
+	</head>
+
+	<body>
+
+		<!--
+
+		<div id="info">SODA</div>
+		-->
+
+		<div id="volume">
+			<div id="vol"></div>
+			<div id="dec"></div>
+			<div id="rms"></div>
+		</div>
+
+		<canvas id="canvas"></canvas>
+
+		<div id="settings" class="hide">
+			<input type="number" name="fft" value="2048">
+			<input type="number" name="volume_warn" value="0">
+			<input type="number" name="volume_clip" value="2">
+		</div>
+
+	</body>
+
+</html>

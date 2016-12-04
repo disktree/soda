@@ -1,0 +1,9 @@
+-js web/soda.js
+-main soda.App
+-lib om.audio
+-cp src
+-debug
+
+-cmd lessc res/style/soda.less web/soda.css
+-cmd cp res/html/index.html web/
+-cmd cp -r res/font web/
