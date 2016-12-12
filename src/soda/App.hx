@@ -78,7 +78,7 @@ class App {
         spectrum.fillRect( 0, 0, w, h );
         spectrum.strokeStyle = '#000';
         */
-        
+
         var sw = width * 1.0 / bufferLength;
         var x = 0.0;
         spectrum.beginPath();
@@ -198,7 +198,9 @@ class App {
 
             function(e){
                 trace(e);
-                fatalError( e.name + ': ' + e.message );
+                var info = e.name;
+                if( e.message.length > 0 ) info += ': '+e.message;
+                fatalError( info );
             }
         );
     }
