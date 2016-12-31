@@ -22,6 +22,7 @@ class App {
     public static var analyser(default,null) : AnalyserNode;
     public static var mic(default,null) : MediaStreamAudioSourceNode;
 
+    static var isMobile = om.System.isMobile();
     static var bufferLength : Int;
     static var frequencyData : Uint8Array;
 	static var timeDomainData : Uint8Array;
@@ -46,7 +47,7 @@ class App {
         //vol.textContent = 'VOL ' + Std.int(meter.vol * 100);
 
         analyser.getByteFrequencyData( frequencyData );
-        analyser.getByteTimeDomainData( timeDomainData );
+        //analyser.getByteTimeDomainData( timeDomainData );
 
 
         var volumeColor = COLOR_VOLUME_OK;
@@ -57,7 +58,6 @@ class App {
         } else if( meter.dec > -1 ) {
             volumeColor = COLOR_VOLUME_WARN;
         }
-
         //dec.style.color = volumeColor;
         document.body.style.background = volumeColor;
 
@@ -96,6 +96,7 @@ class App {
         case 83: // s
             settings.toggle();
         case 27: // esc
+            settings.hide();
         }
     }
 
@@ -107,13 +108,17 @@ class App {
         document.body.innerHTML = '';
         document.body.classList.add( 'error' );
         document.body.textContent = info;
-        document.title += ' - '+info;
+        //document.title += ' - '+info;
     }
 
-    static function start() {
+    static function init() {
 
-        document.body.removeEventListener( 'click', start );
-        document.body.removeEventListener( 'touchstart', start );
+        //document.body.removeEventListener( 'click', init );
+        document.body.removeEventListener( 'touchstart', init );
+
+        if( isMobile ) {
+            untyped document.documentElement.webkitRequestFullscreen();
+        }
 
         volume = cast document.getElementById( 'volume' );
 
@@ -124,7 +129,7 @@ class App {
                 audio = new AudioContext();
 
                 analyser = audio.createAnalyser();
-                analyser.fftSize = 128;
+                analyser.fftSize = 256;
 
                 mic = audio.createMediaStreamSource( stream );
                 mic.connect( analyser );
@@ -162,15 +167,16 @@ class App {
         window.onload = function() {
 
             settings = new SettingsMenu();
+            //settings.show();
 
             frequencySpectrum = new FrequencySpectrum();
             document.body.appendChild( frequencySpectrum.canvas );
 
             if( om.System.isMobile() ) {
-                document.body.addEventListener( 'click', start, false );
-                document.body.addEventListener( 'touchstart', start, false );
+                //document.body.addEventListener( 'click', init, false );
+                document.body.addEventListener( 'touchstart', init, false );
             } else {
-                start();
+                init();
             }
         }
     }

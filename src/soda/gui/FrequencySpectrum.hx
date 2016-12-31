@@ -10,12 +10,15 @@ class FrequencySpectrum {
 
     public var canvas(default,null) : CanvasElement;
     public var color(default,null) : String;
+    public var delay(default,null) : Float;
 
     var context : CanvasRenderingContext2D;
 
     public function new( color = '#fff' ) {
 
         this.color = color;
+
+        delay = 200;
 
         canvas = cast document.getElementById( 'canvas' );
         canvas.width = window.innerWidth;
@@ -58,10 +61,12 @@ class FrequencySpectrum {
 
         var barWidth = Std.int( canvas.width / data.length );
         for( i in 0...data.length ) {
+            
             var v = data[i];
             var percent = v / canvas.height;
             var height = canvas.height * percent;
             var offset = canvas.height - height - 1;
+
             //var hue = i;
             //context.fillStyle = 'hsl(' + hue + ', 100%, 50%)';
             context.fillRect( i * barWidth, offset, barWidth, height );
