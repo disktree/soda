@@ -129,7 +129,7 @@ js_Boot.__string_rec = function(o,s) {
 			var _g2 = l;
 			while(_g11 < _g2) {
 				var i2 = _g11++;
-				str1 += (i2 > 0?",":"") + js_Boot.__string_rec(o[i2],s);
+				str1 += (i2 > 0 ? "," : "") + js_Boot.__string_rec(o[i2],s);
 			}
 			str1 += "]";
 			return str1;
@@ -236,10 +236,10 @@ js_Boot.__instanceof = function(o,cl) {
 		} else {
 			return false;
 		}
-		if(cl == Class?o.__name__ != null:false) {
+		if(cl == Class ? o.__name__ != null : false) {
 			return true;
 		}
-		if(cl == Enum?o.__ename__ != null:false) {
+		if(cl == Enum ? o.__ename__ != null : false) {
 			return true;
 		}
 		return o.__enum__ == cl;
@@ -291,7 +291,7 @@ var js_html_compat_ArrayBuffer = function(a) {
 };
 js_html_compat_ArrayBuffer.__name__ = true;
 js_html_compat_ArrayBuffer.sliceImpl = function(begin,end) {
-	var u = new Uint8Array(this,begin,end == null?null:end - begin);
+	var u = new Uint8Array(this,begin,end == null ? null : end - begin);
 	var result = new ArrayBuffer(u.byteLength);
 	var resultArray = new Uint8Array(result);
 	resultArray.set(u);
@@ -400,8 +400,8 @@ om_Math.ceil = function(f) {
 	return Math.ceil(f);
 };
 om_Math.clamp = function(value,minOrMax1,minOrMax2) {
-	var min = minOrMax1 > minOrMax2?minOrMax2:minOrMax1;
-	var max = minOrMax1 < minOrMax2?minOrMax2:minOrMax1;
+	var min = minOrMax1 > minOrMax2 ? minOrMax2 : minOrMax1;
+	var max = minOrMax1 < minOrMax2 ? minOrMax2 : minOrMax1;
 	if(value < min) {
 		return min;
 	} else if(value > max) {
@@ -629,8 +629,7 @@ var om_audio_VolumeMeter = function(audio,bufferSize,clipLevel,averaging,clipLag
 		if(!clipping) {
 			return false;
 		}
-		var tmp = window.performance.now();
-		if(lastClip + clipLag < tmp) {
+		if(lastClip + clipLag < window.performance.now()) {
 			clipping = false;
 		}
 		return clipping;
@@ -644,7 +643,7 @@ var om_audio_VolumeMeter = function(audio,bufferSize,clipLevel,averaging,clipLag
 		while(_g1 < _g) {
 			var i = _g1++;
 			x = buf[i];
-			if((x < 0?-x:x) >= clipLevel) {
+			if((x < 0 ? -x : x) >= clipLevel) {
 				clipping = true;
 				lastClip = window.performance.now();
 			}
@@ -653,7 +652,7 @@ var om_audio_VolumeMeter = function(audio,bufferSize,clipLevel,averaging,clipLag
 		_gthis.rms = Math.sqrt(sum / buf.length);
 		var a = _gthis.rms;
 		var b = _gthis.vol * averaging;
-		_gthis.vol = a < b?b:a;
+		_gthis.vol = a < b ? b : a;
 		_gthis.dec = 10 * (Math.log(_gthis.vol) / 2.302585092994046);
 	};
 	this.processor.connect(audio.destination);
@@ -867,7 +866,7 @@ om_util_StringUtil.parseFloat = function(f,precision) {
 	if(precision < 0) {
 		throw new js__$Boot_HaxeError("invalid precision");
 	}
-	var s = f == null?"null":"" + f;
+	var s = f == null ? "null" : "" + f;
 	var i = s.indexOf(".");
 	if(i == -1) {
 		return s;
@@ -918,65 +917,50 @@ om_util_StringUtil.toArray = function(str,delimiter) {
 var soda_App = function() { };
 soda_App.__name__ = true;
 soda_App.update = function(time) {
+	window;
+	window;
 	window.requestAnimationFrame(soda_App.update);
 	soda_App.dec.textContent = (soda_App.meter.dec | 0) + "";
-	soda_App.analyser.getByteTimeDomainData(soda_App.timeDomainData);
 	soda_App.analyser.getByteFrequencyData(soda_App.frequencyData);
-	var width = window.innerWidth;
-	var height = window.innerHeight;
 	var volumeColor = "#000000";
 	if(soda_App.meter.dec > 0) {
 		volumeColor = "#ff0000";
+		soda_App.dec.textContent += "DB";
 	} else if(soda_App.meter.dec > -1) {
 		volumeColor = "#9C27B0";
 	}
 	window.document.body.style.background = volumeColor;
-	soda_App.spectrum.clearRect(0,0,width,height);
-	var sw = width / soda_App.bufferLength;
-	var x = 0.0;
-	soda_App.spectrum.beginPath();
-	var _g1 = 0;
-	var _g = soda_App.bufferLength;
-	while(_g1 < _g) {
-		var i = _g1++;
-		var v = soda_App.timeDomainData[i] / 128.0;
-		var y = v * height / 2;
-		if(i == 0) {
-			soda_App.spectrum.moveTo(x,y);
-		} else {
-			soda_App.spectrum.lineTo(x,y);
-		}
-		x += sw;
-	}
-	soda_App.spectrum.stroke();
-};
-soda_App.handleWindowResize = function(e) {
-	soda_App.canvas.width = window.innerWidth;
-	soda_App.canvas.height = window.innerHeight;
+	soda_App.frequencySpectrum.draw(soda_App.frequencyData);
 };
 soda_App.handleKeyDown = function(e) {
 	var _g = e.keyCode;
 	switch(_g) {
 	case 27:
+		soda_App.settings.hide();
 		break;
 	case 83:
 		soda_App.settings.toggle();
 		break;
 	}
 };
+soda_App.handleWindowResize = function(e) {
+	soda_App.frequencySpectrum.resize(window.innerWidth,window.innerHeight);
+};
 soda_App.fatalError = function(info) {
 	window.document.body.innerHTML = "";
 	window.document.body.classList.add("error");
 	window.document.body.textContent = info;
 };
-soda_App.start = function() {
-	window.document.body.removeEventListener("click",soda_App.start);
-	window.document.body.removeEventListener("touchstart",soda_App.start);
+soda_App.init = function() {
+	window.document.body.removeEventListener("touchstart",soda_App.init);
+	if(soda_App.isMobile) {
+		window.document.documentElement.webkitRequestFullscreen();
+	}
 	soda_App.volume = window.document.getElementById("volume");
 	window.navigator.getUserMedia({ audio : true, video : false},function(stream) {
 		soda_App.audio = new AudioContext();
 		soda_App.analyser = soda_App.audio.createAnalyser();
-		soda_App.analyser.fftSize = 2048;
+		soda_App.analyser.fftSize = 256;
 		soda_App.mic = soda_App.audio.createMediaStreamSource(stream);
 		soda_App.mic.connect(soda_App.analyser);
 		soda_App.bufferLength = soda_App.analyser.frequencyBinCount;
@@ -992,7 +976,11 @@ soda_App.start = function() {
 		window.requestAnimationFrame(soda_App.update);
 	},function(e) {
 		console.log(e);
-		soda_App.fatalError(e.name + ": " + e.message);
+		var info = e.name;
+		if(e.message.length > 0) {
+			info += ": " + Std.string(e.message);
+		}
+		soda_App.fatalError(info);
 	});
 };
 soda_App.main = function() {
@@ -1000,19 +988,12 @@ soda_App.main = function() {
 	window.navigator.getUserMedia = tmp;
 	window.onload = function() {
 		soda_App.settings = new soda_SettingsMenu();
-		soda_App.canvas = window.document.getElementById("canvas");
-		soda_App.canvas.width = window.innerWidth;
-		soda_App.canvas.height = window.innerHeight;
-		window.document.body.appendChild(soda_App.canvas);
-		soda_App.spectrum = soda_App.canvas.getContext("2d",null);
-		soda_App.spectrum.fillStyle = "#fff";
-		soda_App.spectrum.strokeStyle = "#fff";
-		soda_App.spectrum.lineWidth = 1;
+		soda_App.frequencySpectrum = new soda_gui_FrequencySpectrum();
+		window.document.body.appendChild(soda_App.frequencySpectrum.canvas);
 		if(om_System.isMobile()) {
-			window.document.body.addEventListener("click",soda_App.start,false);
-			window.document.body.addEventListener("touchstart",soda_App.start,false);
+			window.document.body.addEventListener("touchstart",soda_App.init,false);
 		} else {
-			soda_App.start();
+			soda_App.init();
 		}
 	};
 };
@@ -1041,6 +1022,43 @@ soda_SettingsMenu.prototype = {
 		}
 	}
 	,__class__: soda_SettingsMenu
+};
+var soda_gui_FrequencySpectrum = function(color) {
+	if(color == null) {
+		color = "#fff";
+	}
+	this.color = color;
+	this.delay = 200;
+	this.canvas = window.document.getElementById("canvas");
+	this.canvas.width = window.innerWidth;
+	this.canvas.height = window.innerHeight;
+	this.context = this.canvas.getContext("2d",null);
+	this.resize(window.innerWidth,window.innerHeight);
+};
+soda_gui_FrequencySpectrum.__name__ = true;
+soda_gui_FrequencySpectrum.prototype = {
+	resize: function(width,height) {
+		this.canvas.width = width;
+		this.canvas.height = height;
+		this.context.lineWidth = 1;
+		this.context.fillStyle = this.color;
+		this.context.strokeStyle = this.color;
+	}
+	,draw: function(data) {
+		this.context.clearRect(0,0,this.canvas.width,this.canvas.height);
+		var barWidth = this.canvas.width / data.length | 0;
+		var _g1 = 0;
+		var _g = data.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			var v = data[i];
+			var percent = v / this.canvas.height;
+			var height = this.canvas.height * percent;
+			var offset = this.canvas.height - height - 1;
+			this.context.fillRect(i * barWidth,offset,barWidth,height);
+		}
+	}
+	,__class__: soda_gui_FrequencySpectrum
 };
 var $_, $fid = 0;
 function $bind(o,m) { if( m == null ) return null; if( m.__id__ == null ) m.__id__ = $fid++; var f; if( o.hx__closures__ == null ) o.hx__closures__ = {}; else f = o.hx__closures__[m.__id__]; if( f == null ) { f = function(){ return f.method.apply(f.scope, arguments); }; f.scope = o; f.method = m; o.hx__closures__[m.__id__] = f; } return f; }
@@ -1082,6 +1100,7 @@ soda_App.COLOR_VOLUME_QUIET = "#999999";
 soda_App.COLOR_VOLUME_OK = "#000000";
 soda_App.COLOR_VOLUME_WARN = "#9C27B0";
 soda_App.COLOR_VOLUME_LOUD = "#ff0000";
+soda_App.isMobile = om_System.isMobile();
 soda_App.main();
 })(typeof window != "undefined" ? window : typeof global != "undefined" ? global : typeof self != "undefined" ? self : this);
 
