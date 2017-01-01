@@ -5,26 +5,31 @@ import js.Browser.window;
 import js.html.CanvasElement;
 import js.html.CanvasRenderingContext2D;
 import js.html.Uint8Array;
+import om.Time;
 
 class FrequencySpectrum {
 
     public var canvas(default,null) : CanvasElement;
     public var color(default,null) : String;
-    public var delay(default,null) : Float;
+    //public var delay(default,null) : Float;
 
-    var context : CanvasRenderingContext2D;
+    var ctx : CanvasRenderingContext2D;
+    var dataMax : Uint8Array;
+    var dataHistory : Array<Uint8Array>;
+    var dataHistoryDelay : Int; // frames
 
-    public function new( color = '#fff' ) {
+    public function new( color = '#fff', dataHistoryDelay = 60 ) {
 
         this.color = color;
+        this.dataHistoryDelay = dataHistoryDelay;
 
-        delay = 200;
+        dataHistory = [];
 
         canvas = cast document.getElementById( 'canvas' );
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
 
-        context = canvas.getContext2d();
+        ctx = canvas.getContext2d();
 
         resize( window.innerWidth, window.innerHeight );
     }
@@ -32,44 +37,52 @@ class FrequencySpectrum {
     public function resize( width : Int, height : Int ) {
         canvas.width = width;
         canvas.height = height;
-        context.lineWidth = 1;
-        context.fillStyle = color;
-        context.strokeStyle = color;
+        ctx.lineWidth = 1;
+        ctx.fillStyle = color;
+        ctx.strokeStyle = color;
     }
 
     public function draw( data : Uint8Array ) {
 
-        context.clearRect( 0, 0, canvas.width, canvas.height );
+        ctx.clearRect( 0, 0, canvas.width, canvas.height );
 
-        /*
-        var sw = Std.int( canvas.width * 1.0 / data.length );
-        var x = 0.0;
-        context.beginPath();
-        for( i in 0...data.length ) {
-            var v = data[i]; // / 128.0;
-            var y = v * canvas.height / 100 / 4;
-            if( i == 0) {
-                context.moveTo( x, y );
-            } else {
-                context.lineTo( x, y );
+        if( dataMax == null ) {
+            dataMax = new Uint8Array( data.length );
+            for( i in 0...data.length ) {
+                dataMax[i] = data[i];
             }
-            x += sw;
+        } else {
+            for( i in 0...data.length ) {
+                var va = data[i];
+                var vb = dataMax[i];
+                if( va > vb ) dataMax[i] = va;
+            }
         }
-        //context.lineTo( canvas.width, canvas.height / 2 );
-        context.stroke();
-        */
 
-        var barWidth = Std.int( canvas.width / data.length );
+        drawSpectrum( dataMax, '#1f1f1f' );
+
+        var dataCopy = new Uint8Array( data );
+        dataHistory.push( dataCopy );
+        if( dataHistory.length >= dataHistoryDelay ) dataHistory.shift();
+        drawSpectrum( dataHistory[0], '#586E75' );
+
+        drawSpectrum( data, 'rgba(255,255,255,1)' );
+    }
+
+    function drawSpectrum( data : Uint8Array, color : String ) {
+
+        var bw = Std.int( canvas.width / data.length );
+
         for( i in 0...data.length ) {
-            
-            var v = data[i];
-            var percent = v / canvas.height;
-            var height = canvas.height * percent;
-            var offset = canvas.height - height - 1;
 
-            //var hue = i;
-            //context.fillStyle = 'hsl(' + hue + ', 100%, 50%)';
-            context.fillRect( i * barWidth, offset, barWidth, height );
+            var val = data[i];
+            var bx = i * (bw + 1);
+            var bh = canvas.height * (val / canvas.height);
+            var by = canvas.height - bh;
+
+            ctx.beginPath();
+            ctx.fillStyle = color;
+            ctx.fillRect( bx, by, bw, bh );
         }
     }
 
