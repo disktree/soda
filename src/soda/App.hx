@@ -1,183 +1,141 @@
 package soda;
 
+import js.Browser.console;
 import js.Browser.document;
 import js.Browser.window;
 import js.Browser.navigator;
 import js.html.DivElement;
 import js.html.Uint8Array;
+import js.html.Float32Array;
 import js.html.audio.AudioContext;
 import js.html.audio.AnalyserNode;
 import js.html.audio.MediaStreamAudioSourceNode;
 import om.audio.VolumeMeter;
-import soda.gui.FrequencySpectrum;
 
 class App {
 
-    static inline var COLOR_VOLUME_QUIET = '#999999';
-    static inline var COLOR_VOLUME_OK = '#000000';
-    static inline var COLOR_VOLUME_WARN = '#9C27B0';
-    static inline var COLOR_VOLUME_LOUD = '#ff0000';
-
+    public static var isMobile(default,null) : Bool;
     public static var audio(default,null) : AudioContext;
-    public static var analyser(default,null) : AnalyserNode;
-    public static var mic(default,null) : MediaStreamAudioSourceNode;
 
-    static var isMobile = om.System.isMobile();
-    static var bufferLength : Int;
+    static var microphone : MediaStreamAudioSourceNode;
+    static var frequencyAnalyser : AnalyserNode;
+    static var waveformAnalyser : AnalyserNode;
     static var frequencyData : Uint8Array;
-	static var timeDomainData : Uint8Array;
+	static var waveformData : Float32Array;
     static var meter : VolumeMeter;
 
-    static var frequencySpectrum : FrequencySpectrum;
-    static var volume : DivElement;
-    static var vol : DivElement;
-    static var rms : DivElement;
-    static var dec : DivElement;
-    static var settings : SettingsMenu;
+	static var spectrum : Spectrum;
+	static var info : DivElement;
 
     static function update( time : Float ) {
 
-        var width = window.innerWidth;
-        var height = window.innerHeight;
-
         window.requestAnimationFrame( update );
 
-        dec.textContent = Std.int( meter.dec )+'';
-        //rms.textContent = 'RMS ' + Std.int(meter.rms * 100);
-        //vol.textContent = 'VOL ' + Std.int(meter.vol * 100);
+        frequencyAnalyser.getByteFrequencyData( frequencyData );
+        waveformAnalyser.getFloatTimeDomainData( waveformData );
 
-        analyser.getByteFrequencyData( frequencyData );
-        //analyser.getByteTimeDomainData( timeDomainData );
+        spectrum.draw( frequencyData, waveformData );
 
-
-        var volumeColor = COLOR_VOLUME_OK;
-
-        if( meter.dec > 0 ) {
-            volumeColor = COLOR_VOLUME_LOUD;
-            dec.textContent += 'DB';
-        } else if( meter.dec > -1 ) {
-            volumeColor = COLOR_VOLUME_WARN;
-        }
-        //dec.style.color = volumeColor;
-        document.body.style.background = volumeColor;
-
-        frequencySpectrum.draw( frequencyData );
-
-        //var sliceWidth = width * 1.0 / bufferLength;
-        //if( canvas.width < bufferLength ) sliceWidth = 1;
-
-/*
-        var sw = width * 1.0 / bufferLength;
-        var x = 0.0;
-        spectrum.beginPath();
-        for( i in 0...bufferLength ) {
-            var v = timeDomainData[i] / 128.0;
-            var y = v * height / 2;
-            if( i == 0) {
-                spectrum.moveTo( x, y );
-            } else {
-                spectrum.lineTo( x, y );
-            }
-            x += sw;
-        }
-        //spectrum.lineTo( canvas.width, canvas.height / 2 );
-        spectrum.stroke();
-*/
-
-        var offset = Std.int( height - (meter.vol * height) );
-        //volume.style.height = offset+'px';
-        //volume.style.top = offset+'px';
-
+        info.textContent = Std.int( meter.decibel )+'';
     }
 
     static function handleKeyDown(e) {
         //trace(e.keyCode);
+        /*
         switch e.keyCode {
         case 83: // s
             settings.toggle();
         case 27: // esc
             settings.hide();
         }
+        */
     }
 
     static function handleWindowResize(e) {
-        frequencySpectrum.resize( window.innerWidth, window.innerHeight );
+        spectrum.resize( window.innerWidth, window.innerHeight );
     }
 
     static function fatalError( info : String ) {
+
+        console.error( info );
+
         document.body.innerHTML = '';
         document.body.classList.add( 'error' );
         document.body.textContent = info;
-        //document.title += ' - '+info;
     }
 
     static function init() {
 
-        //document.body.removeEventListener( 'click', init );
-        document.body.removeEventListener( 'touchstart', init );
+        om.audio.Microphone.get().then( function(stream){
 
-        if( isMobile ) {
-            untyped document.documentElement.webkitRequestFullscreen();
-        }
+            audio = new AudioContext();
 
-        volume = cast document.getElementById( 'volume' );
+            frequencyAnalyser = audio.createAnalyser();
+            frequencyAnalyser.fftSize = 256;
+            //analyser.minDecibels = -100;
+            //analyser.maxDecibels = -30;
+            //frequencyAnalyser.connect( audio.destination );
 
-        untyped navigator.getUserMedia( { audio: true, video: false },
+            waveformAnalyser = audio.createAnalyser();
+            waveformAnalyser.fftSize = 2048;
+            waveformAnalyser.connect( frequencyAnalyser );
 
-            function(stream) {
+            frequencyData = new Uint8Array( frequencyAnalyser.frequencyBinCount );
+            waveformData = new Float32Array( waveformAnalyser.frequencyBinCount );
 
-                audio = new AudioContext();
+            microphone = audio.createMediaStreamSource( stream );
+            microphone.connect( waveformAnalyser );
 
-                analyser = audio.createAnalyser();
-                analyser.fftSize = 256;
+            meter = new om.audio.VolumeMeter( audio );
+            microphone.connect( meter.processor );
 
-                mic = audio.createMediaStreamSource( stream );
-                mic.connect( analyser );
+            window.addEventListener( 'resize', handleWindowResize, false );
+            window.addEventListener( 'keydown', handleKeyDown, false );
 
-                bufferLength = analyser.frequencyBinCount;
-                frequencyData = new Uint8Array( bufferLength );
-                timeDomainData = new Uint8Array( bufferLength );
+            window.requestAnimationFrame( update );
 
-                rms = document.getElementById( 'rms' );
-                vol = document.getElementById( 'vol' );
-                dec = document.getElementById( 'dec' );
+        }).catchError( function(e){
 
-                meter = new om.audio.VolumeMeter( audio );
-                mic.connect( meter.processor );
-
-                window.addEventListener( 'resize', handleWindowResize, false );
-                window.addEventListener( 'keydown', handleKeyDown, false );
-
-                window.requestAnimationFrame( update );
-            },
-
-            function(e){
-                trace(e);
-                var info = e.name;
-                if( e.message.length > 0 ) info += ': '+e.message;
-                fatalError( info );
-            }
-        );
+            var info = e.name;
+            if( e.message.length > 0 ) info += ': '+e.message;
+            fatalError( info );
+        });
     }
 
     static function main() {
 
-        untyped navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
-
         window.onload = function() {
 
-            settings = new SettingsMenu();
-            //settings.show();
+            isMobile = om.System.isMobile();
 
-            frequencySpectrum = new FrequencySpectrum();
-            document.body.appendChild( frequencySpectrum.canvas );
+            /*
+            om.audio.Device.get(function(devices){
+                trace(devices);
+            });
+            */
 
-            if( om.System.isMobile() ) {
-                //document.body.addEventListener( 'click', init, false );
-                document.body.addEventListener( 'touchstart', init, false );
-            } else {
-                init();
-            }
+            var canvas = document.createCanvasElement();
+            //canvas.classList.add( 'spectrum' );
+            canvas.id = 'spectrum';
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            document.body.appendChild( canvas );
+
+            spectrum = new Spectrum( canvas );
+
+            info = document.createDivElement();
+            //info.classList.add( 'info' );
+            info.id = 'info';
+            info.textContent = 'SODA';
+            document.body.appendChild( info );
+
+            if( isMobile) {
+                document.body.addEventListener( 'touchstart', function(e) {
+                    document.body.removeEventListener( 'touchstart', init );
+                    untyped document.documentElement.webkitRequestFullscreen();
+                    init();
+                }, false );
+            } else init();
         }
     }
 

@@ -1,4 +1,4 @@
 
 # SODA
 
-Sound data analyser | https://tong.github.io/soda/
+SOund DAta analyzer | https://tong.github.io/soda/

@@ -14,19 +14,19 @@ html,body {
 
 body {
 
+    overflow: hidden;
 	padding: 0;
-	overflow: hidden;
 
 	font-family: 'Anonymous Pro';
 	font-size: 11px;
 
-	background: #000;
-	color: #fff;
+	background: #0c0c0c;
+	color: #e0e0e0;
 
-	-webkit-user-select: none;
-	cursor: default;
+	//-webkit-user-select: none;
+	//cursor: default;
 
-	transition: background 0.1s;
+	//transition: background 0.1s;
 }
 
 body.error {
@@ -43,52 +43,30 @@ body.error {
     height: 100%;
 }
 
-canvas {
+#spectrum {
+
     position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+
     z-index: 1;
+
+    -webkit-user-select: none;
 }
 
-#volume {
+#info {
 
     position: fixed;
-    right: 8px;
-    bottom: -8px;
+    right: 6px;
+    bottom: -10px;
 
     font-family: Helvetica;
-    font-size: 100px;
+    font-size: 80px;
     letter-spacing: -3px;
 
-    z-index: 100;
+    color: rgba(230,230,230,1.0);
 
-    transition: background 0.15s;
-
-        /*
-    &.loud {
-        font-size: 128px;
-    }
-    */
-}
-
-#settings {
-
-    position: fixed;
-    top: 0px;
-    left: 0px;
-    right: 0px;
-
-    display: table;
-    margin: 4px;
-    padding: 4px;
-
-    background: rgba(255,255,255,1);
-    color: #000;
-
-    z-index: 1000;
-
-    &.hide {
-        display: none;
-    }
-    &.show {
-        display: inline-block;
-    }
+    z-index: 2;
 }
