@@ -12,7 +12,16 @@ import js.html.audio.AnalyserNode;
 import js.html.audio.MediaStreamAudioSourceNode;
 import om.audio.VolumeMeter;
 
-class App {
+/*
+typedef Settings = {
+    var device : Selection;
+    var spectrum = {
+        //var fft : IntRange<2,2948>
+    };
+}
+*/
+
+class App implements om.App {
 
     public static var isMobile(default,null) : Bool;
     public static var audio(default,null) : AudioContext;
@@ -23,6 +32,7 @@ class App {
     static var frequencyData : Uint8Array;
 	static var waveformData : Float32Array;
     static var meter : VolumeMeter;
+    //static var recorder : Recorder;
 
 	static var spectrum : Spectrum;
 	static var info : DivElement;
@@ -60,8 +70,9 @@ class App {
         console.error( info );
 
         document.body.innerHTML = '';
-        document.body.classList.add( 'error' );
-        document.body.textContent = info;
+        var e = document.createDivElement();
+        e.id = 'fatal-error';
+        e.textContent = info;
     }
 
     static function init() {
@@ -89,13 +100,28 @@ class App {
             meter = new om.audio.VolumeMeter( audio );
             microphone.connect( meter.processor );
 
+            /*
+            var recorder = new Recorder( stream );
+            recorder.start();
+            haxe.Timer.delay( function(){
+                recorder.stop( function(rec){
+                    trace(rec);
+                    var url = js.html.URL.createObjectURL(rec);
+                    var player = document.createAudioElement();
+                    player.src = url;
+                    player.controls = true;
+                    player.style.cssText = 'position:fixed; z-index:1000;';
+                    document.body.appendChild( player );
+                });
+            },1000);
+            */
+
             window.addEventListener( 'resize', handleWindowResize, false );
             window.addEventListener( 'keydown', handleKeyDown, false );
 
             window.requestAnimationFrame( update );
 
         }).catchError( function(e){
-
             var info = e.name;
             if( e.message.length > 0 ) info += ': '+e.message;
             fatalError( info );
@@ -106,6 +132,10 @@ class App {
 
         window.onload = function() {
 
+            document.body.innerHTML = '';
+
+            document.addEventListener( 'contextmenu', function(e) e.preventDefault() );
+
             isMobile = om.System.isMobile();
 
             /*
@@ -114,20 +144,17 @@ class App {
             });
             */
 
-            var canvas = document.createCanvasElement();
-            //canvas.classList.add( 'spectrum' );
-            canvas.id = 'spectrum';
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            document.body.appendChild( canvas );
-
-            spectrum = new Spectrum( canvas );
+            spectrum = new Spectrum();
+            document.body.appendChild( spectrum.element );
 
             info = document.createDivElement();
             //info.classList.add( 'info' );
-            info.id = 'info';
+            info.classList.add( 'info' );
             info.textContent = 'SODA';
             document.body.appendChild( info );
+
+            //var settings = new SettingsMenu();
+            //document.body.appendChild( settings.element );
 
             if( isMobile) {
                 document.body.addEventListener( 'touchstart', function(e) {

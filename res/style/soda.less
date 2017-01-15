@@ -1,4 +1,9 @@
 
+@background-color: #0c0c0c;
+@foreground-color: #e0e0e0;
+@error-color: #D50000;
+
+
 @font-face{
     font-family: 'Helvetica';
     src: url('font/Helvetica Neue 65 Medium.ttf') format('truetype');
@@ -20,8 +25,8 @@ body {
 	font-family: 'Anonymous Pro';
 	font-size: 11px;
 
-	background: #0c0c0c;
-	color: #e0e0e0;
+	background: @background-color;
+	color: @foreground-color;
 
 	//-webkit-user-select: none;
 	//cursor: default;
@@ -29,44 +34,72 @@ body {
 	//transition: background 0.1s;
 }
 
-body.error {
-    background: #ff0000;
-	color: #fff;
-    margin: 10px;
-    font-family: 'Helvetica';
-	font-size: 60px;
-    letter-spacing: -3px;
-}
-
 :-webkit-full-screen {
     width: 100%;
     height: 100%;
 }
 
-#spectrum {
-
-    position: fixed;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
-
-    z-index: 1;
-
-    -webkit-user-select: none;
+#fatal-error {
+    background: @error-color;
+    color: #FFEBEE;
+    margin: 10px;
+    font-family: 'Helvetica Neue';
+    font-size: 40px;
+    letter-spacing: -2px;
 }
 
-#info {
+#soda {
 
-    position: fixed;
-    right: 6px;
-    bottom: -10px;
+    .spectrum {
 
-    font-family: Helvetica;
-    font-size: 80px;
-    letter-spacing: -3px;
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
 
-    color: rgba(230,230,230,1.0);
+        z-index: 1;
 
-    z-index: 2;
+        -webkit-user-select: none;
+
+        canvas.grid, canvas {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+
+        canvas.grid {
+            //background: #00ff00;
+        }
+    }
+
+    .info {
+
+        position: fixed;
+        right: 6px;
+        bottom: -10px;
+
+        font-family: Helvetica;
+        font-size: 80px;
+        letter-spacing: -3px;
+
+        color: rgba(230,230,230,1.0);
+        mix-blend-mode: exclusion;
+
+        z-index: 2;
+
+        -webkit-user-select: none;
+    }
+
+    .settings {
+
+        position: fixed;
+        background: #000;
+        width: 200px;
+        height: 100%;
+
+        z-index: 3;
+
+        display: none;
+    }
 }

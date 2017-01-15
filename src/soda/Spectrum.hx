@@ -10,21 +10,43 @@ import js.html.Float32Array;
 
 class Spectrum {
 
-    public var canvas(default,null) : CanvasElement;
+    public var element(default,null) : DivElement;
 
+    var grid : CanvasElement;
+    var canvas : CanvasElement;
     var ctx : CanvasRenderingContext2D;
 
-    public function new( canvas : CanvasElement ) {
-        this.canvas = canvas;
+    var frequencyHistory : Array<Uint8Array>;
+    //var frequencyMax : Uint8Array;
+
+    public function new() {
+
+        element = document.createDivElement();
+        element.classList.add( 'spectrum' );
+
+        grid = document.createCanvasElement();
+        grid.classList.add( 'grid' );
+        grid.width = window.innerWidth;
+        grid.height = window.innerHeight;
+        element.appendChild( grid );
+
+        canvas = document.createCanvasElement();
+        canvas.classList.add( 'spectrum' );
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        element.appendChild( canvas );
+
         ctx = canvas.getContext2d();
+
+        drawGrid( 36 );
+
+        frequencyHistory = [];
     }
 
     public function resize( width : Int, height : Int ) {
-        canvas.width = width;
-        canvas.height = height;
-        //ctx.lineWidth = 1;
-        //ctx.fillStyle = color;
-        //ctx.strokeStyle = color;
+        grid.width = canvas.width = width;
+        grid.height = canvas.height = height;
+        drawGrid( 36 );
     }
 
     public function draw( frequency : Uint8Array, waveform : Float32Array ) {
@@ -52,20 +74,58 @@ class Spectrum {
         ctx.lineTo( canvas.width, canvas.height/2 );
         ctx.stroke();
 
+        ///// Draw history peaks
+
+        var copy = new Uint8Array( frequency.length );
+        for( i in 0...frequency.length ) copy[i] = frequency[i];
+        frequencyHistory.push( copy );
+        if( frequencyHistory.length > 60 ) frequencyHistory.shift();
+
+        var frequencyMax = new Uint8Array( frequency.length );
+        for( freq in frequencyHistory ) {
+            for( i in 0...freq.length ) {
+                var va = freq[i];
+                var vb = frequencyMax[i];
+                if( va > vb ) frequencyMax[i] = va;
+            }
+        }
+        drawFrequency( frequencyMax, 'rgba(40,40,40,0.8)' );
+
         ///// Draw frequency
 
-        bw = Std.int( canvas.width / frequency.length );
-        px = 0.0;
+        drawFrequency( frequency, 'rgb(230,230,230)' );
+    }
 
+    function drawFrequency( data : Uint8Array, color : String ) {
+
+        var bw = Std.int( canvas.width / data.length );
         var bh : Float;
+        var px = 0.0;
 
         ctx.beginPath();
-        ctx.fillStyle = 'rgb(230,230,230)';
+        ctx.fillStyle = color;
 
-        for( i in 0...frequency.length ) {
-            bh = canvas.height * (frequency[i] / canvas.height);
+        for( i in 0...data.length ) {
+            bh = canvas.height * (data[i] / canvas.height);
             ctx.fillRect( i * (bw + 1), canvas.height - bh, bw, bh );
         }
+    }
+
+    function drawGrid( dd : Int ) {
+        var ctx = grid.getContext2d();
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = 'rgb(20,20,20)';
+        for( i in 0...Std.int( canvas.width/dd) ) {
+            var px = i * dd;
+            ctx.moveTo( px, 0 );
+            ctx.lineTo( px, canvas.height );
+        }
+        for( i in 0...Std.int( canvas.height/dd) ) {
+            var py = i * dd;
+            ctx.moveTo( 0, py );
+            ctx.lineTo( canvas.width, py );
+        }
+        ctx.stroke();
     }
 
 }
