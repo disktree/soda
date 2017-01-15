@@ -19,25 +19,7 @@ EReg.prototype = {
 		this.r.s = s;
 		return this.r.m != null;
 	}
-	,split: function(s) {
-		var d = "#__delim__#";
-		return s.replace(this.r,d).split(d);
-	}
 	,__class__: EReg
-};
-var HxOverrides = function() { };
-HxOverrides.__name__ = true;
-HxOverrides.substr = function(s,pos,len) {
-	if(len == null) {
-		len = s.length;
-	} else if(len < 0) {
-		if(pos == 0) {
-			len = s.length + len;
-		} else {
-			return "";
-		}
-	}
-	return s.substr(pos,len);
 };
 Math.__name__ = true;
 var Std = function() { };
@@ -45,10 +27,34 @@ Std.__name__ = true;
 Std.string = function(s) {
 	return js_Boot.__string_rec(s,"");
 };
-var StringTools = function() { };
-StringTools.__name__ = true;
-StringTools.replace = function(s,sub,by) {
-	return s.split(sub).join(by);
+var haxe_io_FPHelper = function() { };
+haxe_io_FPHelper.__name__ = true;
+haxe_io_FPHelper.i32ToFloat = function(i) {
+	var sign = 1 - (i >>> 31 << 1);
+	var exp = i >>> 23 & 255;
+	var sig = i & 8388607;
+	if(sig == 0 && exp == 0) {
+		return 0.0;
+	}
+	return sign * (1 + Math.pow(2,-23) * sig) * Math.pow(2,exp - 127);
+};
+haxe_io_FPHelper.floatToI32 = function(f) {
+	if(f == 0) {
+		return 0;
+	}
+	var af = f < 0 ? -f : f;
+	var exp = Math.floor(Math.log(af) / 0.6931471805599453);
+	if(exp < -127) {
+		exp = -127;
+	} else if(exp > 128) {
+		exp = 128;
+	}
+	var sig = Math.round((af / Math.pow(2,exp) - 1) * 8388608);
+	if(sig == 8388608 && exp < 128) {
+		sig = 0;
+		++exp;
+	}
+	return (f < 0 ? -2147483648 : 0) | exp + 127 << 23 | sig;
 };
 var js__$Boot_HaxeError = function(val) {
 	Error.call(this);
@@ -258,21 +264,6 @@ js_Boot.__isNativeObj = function(o) {
 js_Boot.__resolveNativeClass = function(name) {
 	return $global[name];
 };
-var js_html__$CanvasElement_CanvasUtil = function() { };
-js_html__$CanvasElement_CanvasUtil.__name__ = true;
-js_html__$CanvasElement_CanvasUtil.getContextWebGL = function(canvas,attribs) {
-	var _g = 0;
-	var _g1 = ["webgl","experimental-webgl"];
-	while(_g < _g1.length) {
-		var name = _g1[_g];
-		++_g;
-		var ctx = canvas.getContext(name,attribs);
-		if(ctx != null) {
-			return ctx;
-		}
-	}
-	return null;
-};
 var js_html_compat_ArrayBuffer = function(a) {
 	if((a instanceof Array) && a.__enum__ == null) {
 		this.a = a;
@@ -302,6 +293,102 @@ js_html_compat_ArrayBuffer.prototype = {
 		return new js_html_compat_ArrayBuffer(this.a.slice(begin,end));
 	}
 	,__class__: js_html_compat_ArrayBuffer
+};
+var js_html_compat_Float32Array = function() { };
+js_html_compat_Float32Array.__name__ = true;
+js_html_compat_Float32Array._new = function(arg1,offset,length) {
+	var arr;
+	if(typeof(arg1) == "number") {
+		arr = [];
+		var _g1 = 0;
+		var _g = arg1;
+		while(_g1 < _g) {
+			var i = _g1++;
+			arr[i] = 0;
+		}
+		arr.byteLength = arr.length << 2;
+		arr.byteOffset = 0;
+		var _g2 = [];
+		var _g21 = 0;
+		var _g11 = arr.length << 2;
+		while(_g21 < _g11) {
+			var i1 = _g21++;
+			_g2.push(0);
+		}
+		arr.buffer = new js_html_compat_ArrayBuffer(_g2);
+	} else if(js_Boot.__instanceof(arg1,js_html_compat_ArrayBuffer)) {
+		var buffer = arg1;
+		if(offset == null) {
+			offset = 0;
+		}
+		if(length == null) {
+			length = buffer.byteLength - offset >> 2;
+		}
+		arr = [];
+		var _g12 = 0;
+		var _g3 = length;
+		while(_g12 < _g3) {
+			var i2 = _g12++;
+			var val = buffer.a[offset++] | buffer.a[offset++] << 8 | buffer.a[offset++] << 16 | buffer.a[offset++] << 24;
+			arr.push(haxe_io_FPHelper.i32ToFloat(val));
+		}
+		arr.byteLength = arr.length << 2;
+		arr.byteOffset = offset;
+		arr.buffer = buffer;
+	} else if((arg1 instanceof Array) && arg1.__enum__ == null) {
+		arr = arg1.slice();
+		var buffer1 = [];
+		var _g4 = 0;
+		while(_g4 < arr.length) {
+			var f = arr[_g4];
+			++_g4;
+			var i3 = haxe_io_FPHelper.floatToI32(f);
+			buffer1.push(i3 & 255);
+			buffer1.push(i3 >> 8 & 255);
+			buffer1.push(i3 >> 16 & 255);
+			buffer1.push(i3 >>> 24);
+		}
+		arr.byteLength = arr.length << 2;
+		arr.byteOffset = 0;
+		arr.buffer = new js_html_compat_ArrayBuffer(buffer1);
+	} else {
+		throw new js__$Boot_HaxeError("TODO " + Std.string(arg1));
+	}
+	arr.subarray = js_html_compat_Float32Array._subarray;
+	arr.set = js_html_compat_Float32Array._set;
+	return arr;
+};
+js_html_compat_Float32Array._set = function(arg,offset) {
+	if(js_Boot.__instanceof(arg.buffer,js_html_compat_ArrayBuffer)) {
+		var a = arg;
+		if(arg.byteLength + offset > this.byteLength) {
+			throw new js__$Boot_HaxeError("set() outside of range");
+		}
+		var _g1 = 0;
+		var _g = arg.byteLength;
+		while(_g1 < _g) {
+			var i = _g1++;
+			this[i + offset] = a[i];
+		}
+	} else if((arg instanceof Array) && arg.__enum__ == null) {
+		var a1 = arg;
+		if(a1.length + offset > this.byteLength) {
+			throw new js__$Boot_HaxeError("set() outside of range");
+		}
+		var _g11 = 0;
+		var _g2 = a1.length;
+		while(_g11 < _g2) {
+			var i1 = _g11++;
+			this[i1 + offset] = a1[i1];
+		}
+	} else {
+		throw new js__$Boot_HaxeError("TODO");
+	}
+};
+js_html_compat_Float32Array._subarray = function(start,end) {
+	var a = js_html_compat_Float32Array._new(this.slice(start,end));
+	a.byteOffset = start * 4;
+	return a;
 };
 var js_html_compat_Uint8Array = function() { };
 js_html_compat_Uint8Array.__name__ = true;
@@ -378,142 +465,10 @@ js_html_compat_Uint8Array._subarray = function(start,end) {
 	a.byteOffset = start;
 	return a;
 };
-var om_Math = function() { };
-om_Math.__name__ = true;
-om_Math.get_POSITIVE_INFINITY = function() {
-	return Infinity;
-};
-om_Math.get_NEGATIVE_INFINITY = function() {
-	return -Infinity;
-};
-om_Math.get_NaN = function() {
-	return NaN;
-};
-om_Math.abs = function(f) {
-	if(f < 0) {
-		return -f;
-	} else {
-		return f;
-	}
-};
-om_Math.ceil = function(f) {
-	return Math.ceil(f);
-};
-om_Math.clamp = function(value,minOrMax1,minOrMax2) {
-	var min = minOrMax1 > minOrMax2 ? minOrMax2 : minOrMax1;
-	var max = minOrMax1 < minOrMax2 ? minOrMax2 : minOrMax1;
-	if(value < min) {
-		return min;
-	} else if(value > max) {
-		return max;
-	} else {
-		return value;
-	}
-};
-om_Math.isFinite = function(v) {
-	return isFinite(v);
-};
-om_Math.isNaN = function(v) {
-	return isNaN(v);
-};
-om_Math.sin = function(f) {
-	return Math.sin(f);
-};
-om_Math.cos = function(f) {
-	return Math.cos(f);
-};
-om_Math.tan = function(f) {
-	return Math.tan(f);
-};
-om_Math.asin = function(f) {
-	return Math.asin(f);
-};
-om_Math.acos = function(f) {
-	return Math.acos(f);
-};
-om_Math.atan = function(f) {
-	return Math.atan(f);
-};
-om_Math.atan2 = function(y,x) {
-	return Math.atan2(y,x);
-};
-om_Math.floor = function(f) {
-	return Math.floor(f);
-};
-om_Math.log = function(v) {
-	return Math.log(v);
-};
-om_Math.log10 = function(v) {
-	return Math.log(v) / 2.302585092994046;
-};
-om_Math.max = function(a,b) {
-	if(a < b) {
-		return b;
-	} else {
-		return a;
-	}
-};
-om_Math.min = function(a,b) {
-	if(a > b) {
-		return b;
-	} else {
-		return a;
-	}
-};
-om_Math.pow = function(v,p) {
-	return Math.pow(v,p);
-};
-om_Math.radToDeg = function(f) {
-	return f * 180 / 3.141592653589793;
-};
-om_Math.random = function(max) {
-	if(max == null) {
-		max = 1.0;
-	}
-	return Math.random() * max;
-};
-om_Math.round = function(f) {
-	return Math.round(f);
-};
-om_Math.sqrt = function(f) {
-	return Math.sqrt(f);
-};
-om_Math.degToRad = function(f) {
-	return f * 3.141592653589793 / 180;
-};
-om_Math.interpolate = function(f,min,max,equation) {
-	if(max == null) {
-		max = 1.0;
-	}
-	if(min == null) {
-		min = 0.0;
-	}
-	if(equation == null) {
-		return Math.round((min + f) * (max - min));
-	} else {
-		return Math.round(min + equation(f) * (max - min));
-	}
-};
+var om_App = function() { };
+om_App.__name__ = true;
 var om_System = function() { };
 om_System.__name__ = true;
-om_System.$name = function() {
-	var str = window.navigator.appVersion;
-	str = HxOverrides.substr(str,str.indexOf("(") + 1,str.indexOf(")") - 3);
-	if(str.indexOf("Linux") >= 0) {
-		return "linux";
-	} else if(str.indexOf("BSD") >= 0) {
-		return "bsd";
-	} else if(str.indexOf("Macintosh") >= 0) {
-		return "macintosh";
-	} else if(str.indexOf("Windows") >= 0) {
-		return "windows";
-	} else {
-		return null;
-	}
-};
-om_System.hasWindow = function() {
-	return typeof window != 'undefined';
-};
 om_System.isMobile = function(userAgent,mobileUserAgents) {
 	if(userAgent == null) {
 		userAgent = window.navigator.userAgent;
@@ -522,88 +477,6 @@ om_System.isMobile = function(userAgent,mobileUserAgents) {
 		mobileUserAgents = om_System.mobileUserAgents;
 	}
 	return new EReg(mobileUserAgents.join("|"),"i").match(userAgent);
-};
-om_System.supportsGeolocation = function() {
-	return window.navigator.geolocation != null;
-};
-om_System.getLanguage = function() {
-	return window.navigator.language;
-};
-om_System.supportsCustomElements = function() {
-	return "registerElement" in document;
-};
-om_System.supportsFile = function() {
-	return !! window.File && !! window.FileReader && !! window.FileList && !! window.Blob;
-};
-om_System.supportsFileSystem = function() {
-	return !! window.File && !! window.FileReader && !! window.FileList && !! window.Blob;
-};
-om_System.supportsGamepad = function() {
-	if(!(!(!window.navigator.webkitGetGamepads) || !(!window.navigator.webkitGamepads))) {
-		return !(!($_=window.navigator,$bind($_,$_.getGamepads)));
-	} else {
-		return true;
-	}
-};
-om_System.supportsPerformance = function() {
-	return "performance" in window;
-};
-om_System.supportsPointerlock = function() {
-	try {
-		return "pointerLockElement" in document||"mozPointerLockElement" in document||"webkitPointerLockElement" in document;
-	} catch( e ) {
-		return false;
-	}
-};
-om_System.supportsRequestAnimationFrame = function() {
-	return !! window.mozRequestAnimationFrame || !! window.webkitRequestAnimationFrame || !! window.oRequestAnimationFrame || !! window.msRequestAnimationFrame;
-};
-om_System.supportsSessionStorage = function() {
-	try {
-		return ($_=window.sessionStorage,$bind($_,$_.getItem)) != null;
-	} catch( e ) {
-		return false;
-	}
-};
-om_System.supportsTemplate = function() {
-	return "content" in document.createElement("template");
-};
-om_System.supportsTouchInput = function() {
-	try {
-		window.document.createEvent("TouchEvent");
-		return true;
-	} catch( e ) {
-		return false;
-	}
-};
-om_System.supportsUserMedia = function() {
-	return !! window.navigator.getUserMedia || !! window.navigator.webkitGetUserMedia || !! window.navigator.mozGetUserMedia || !! window.navigator.msGetUserMedia;
-};
-om_System.supportsWebAudio = function() {
-	try {
-		if(window.AudioContext == null) {
-			return false;
-		}
-	} catch( e ) {
-		return false;
-	}
-	return true;
-};
-om_System.supportsWebGL = function() {
-	try {
-		if(window.WebGLRenderingContext == null) {
-			return false;
-		}
-		if(js_html__$CanvasElement_CanvasUtil.getContextWebGL(window.document.createElement("canvas"),null) == null) {
-			return false;
-		}
-	} catch( e ) {
-		return false;
-	}
-	return true;
-};
-om_System.supportsWorker = function() {
-	return !! window.Worker;
 };
 var om_audio_VolumeMeter = function(audio,bufferSize,clipLevel,averaging,clipLag) {
 	if(clipLag == null) {
@@ -634,10 +507,12 @@ var om_audio_VolumeMeter = function(audio,bufferSize,clipLevel,averaging,clipLag
 		}
 		return clipping;
 	};
+	var buf;
+	var sum = 0.0;
+	var x;
 	this.processor.onaudioprocess = function(e) {
-		var buf = e.inputBuffer.getChannelData(0);
-		var sum = 0.0;
-		var x;
+		buf = e.inputBuffer.getChannelData(0);
+		sum = 0.0;
 		var _g1 = 0;
 		var _g = buf.length;
 		while(_g1 < _g) {
@@ -651,9 +526,9 @@ var om_audio_VolumeMeter = function(audio,bufferSize,clipLevel,averaging,clipLag
 		}
 		_gthis.rms = Math.sqrt(sum / buf.length);
 		var a = _gthis.rms;
-		var b = _gthis.vol * averaging;
-		_gthis.vol = a < b ? b : a;
-		_gthis.dec = 10 * (Math.log(_gthis.vol) / 2.302585092994046);
+		var b = _gthis.volume * averaging;
+		_gthis.volume = a < b ? b : a;
+		_gthis.decibel = 10 * (Math.log(_gthis.volume) / 2.302585092994046);
 	};
 	this.processor.connect(audio.destination);
 };
@@ -661,321 +536,46 @@ om_audio_VolumeMeter.__name__ = true;
 om_audio_VolumeMeter.prototype = {
 	__class__: om_audio_VolumeMeter
 };
-var om_util_ArrayUtil = function() { };
-om_util_ArrayUtil.__name__ = true;
-om_util_ArrayUtil.before = function(arr,e) {
-	return arr.slice(0,arr.indexOf(e));
-};
-om_util_ArrayUtil.after = function(arr,e) {
-	return arr.slice(arr.indexOf(e) + 1);
-};
-om_util_ArrayUtil["with"] = function(a,e) {
-	return a.concat([e]);
-};
-om_util_ArrayUtil.all = function(arr,predicate) {
-	var _g = 0;
-	while(_g < arr.length) {
-		var e = arr[_g];
-		++_g;
-		if(!predicate(e)) {
-			return false;
-		}
-	}
-	return true;
-};
-om_util_ArrayUtil.any = function(arr,predicate) {
-	var _g = 0;
-	while(_g < arr.length) {
-		var e = arr[_g];
-		++_g;
-		if(predicate(e)) {
-			return true;
-		}
-	}
-	return false;
-};
-om_util_ArrayUtil.contains = function(arr,element,eq) {
-	if(eq == null) {
-		return arr.indexOf(element) >= 0;
-	}
-	var _g1 = 0;
-	var _g = arr.length;
-	while(_g1 < _g) {
-		var i = _g1++;
-		if(eq(arr[i],element)) {
-			return true;
-		}
-	}
-	return false;
-};
-om_util_ArrayUtil.equals = function(a,b,f) {
-	if(a == null || b == null || a.length != b.length) {
-		return false;
-	}
-	var _g1 = 0;
-	var _g = a.length;
-	while(_g1 < _g) {
-		var i = _g1++;
-		if(!f(a[i],b[i])) {
-			return false;
-		}
-	}
-	return true;
-};
-om_util_ArrayUtil.add = function(arr,v) {
-	arr.push(v);
-	return arr;
-};
-om_util_ArrayUtil.append = function(a,b) {
-	a = a.concat(b);
-	return a;
-};
-om_util_ArrayUtil.first = function(a) {
-	return a[0];
-};
-om_util_ArrayUtil.last = function(a) {
-	return a[a.length - 1];
-};
-om_util_ArrayUtil.maxValue = function(a) {
-	var m = a[0];
-	var _g = 0;
-	while(_g < a.length) {
-		var v = a[_g];
-		++_g;
-		if(v > m) {
-			m = v;
-		}
-	}
-	return m;
-};
-om_util_ArrayUtil.maxValueIndex = function(a) {
-	var h = a[0];
-	var i = 0;
-	var _g1 = 0;
-	var _g = a.length;
-	while(_g1 < _g) {
-		var j = _g1++;
-		var v = a[j];
-		if(v > h) {
-			h = v;
-			i = j;
-		}
-	}
-	return i;
-};
-om_util_ArrayUtil.resize = function(array,length,fill) {
-	if(fill == null) {
-		fill = 0;
-	}
-	while(array.length < length) array.push(fill);
-	array.splice(length,array.length - length);
-	return array;
-};
-om_util_ArrayUtil.resizeFloatArray = function(array,length,fill) {
-	if(fill == null) {
-		fill = 0.0;
-	}
-	while(array.length < length) array.push(fill);
-	array.splice(length,array.length - length);
-	return array;
-};
-om_util_ArrayUtil.shuffle = function(a) {
-	var x;
-	var j;
-	var i = a.length;
-	while(i > 0) {
-		j = Math.floor(Math.random() * i);
-		x = a[i - 1];
-		a[i - 1] = a[j];
-		a[j] = x;
-		--i;
-	}
-	return a;
-};
-om_util_ArrayUtil.sorted = function(a,f) {
-	var n = a.slice();
-	n.sort(f);
-	return n;
-};
-om_util_ArrayUtil.reversed = function(a) {
-	var b = a.slice();
-	b.reverse();
-	return b;
-};
-om_util_ArrayUtil.dropLeft = function(a,n) {
-	if(n >= a.length) {
-		return [];
-	} else {
-		return a.slice(n);
-	}
-};
-om_util_ArrayUtil.dropRight = function(a,n) {
-	if(n >= a.length) {
-		return [];
-	} else {
-		return a.slice(0,a.length - n);
-	}
-};
-var om_util_StringUtil = function() { };
-om_util_StringUtil.__name__ = true;
-om_util_StringUtil.capitalize = function(str) {
-	return str.charAt(0).toUpperCase() + HxOverrides.substr(str,1,null);
-};
-om_util_StringUtil.contains = function(src,str) {
-	return src.indexOf(str) >= 0;
-};
-om_util_StringUtil.containsAny = function(src,str) {
-	var a1 = src;
-	return om_util_ArrayUtil.any(str,function(a2) {
-		return om_util_StringUtil.contains(a1,a2);
-	});
-};
-om_util_StringUtil.count = function(str,seperator) {
-	if(seperator == null) {
-		seperator = "";
-	}
-	return str.split(seperator).length;
-};
-om_util_StringUtil.countLines = function(str) {
-	return str.split("\n").length;
-};
-om_util_StringUtil.isEmpty = function(str) {
-	if(str != null) {
-		return str == "";
-	} else {
-		return true;
-	}
-};
-om_util_StringUtil.isLowerCase = function(str) {
-	return str.toLowerCase() == str;
-};
-om_util_StringUtil.isUpperCase = function(str) {
-	return str.toUpperCase() == str;
-};
-om_util_StringUtil.lines = function(str) {
-	return new EReg("\r\n|\n\r|\n|\r","g").split(str);
-};
-om_util_StringUtil.parseFloat = function(f,precision) {
-	if(precision == null) {
-		if(f == null) {
-			return "null";
-		} else {
-			return "" + f;
-		}
-	}
-	if(precision < 0) {
-		throw new js__$Boot_HaxeError("invalid precision");
-	}
-	var s = f == null ? "null" : "" + f;
-	var i = s.indexOf(".");
-	if(i == -1) {
-		return s;
-	}
-	if(precision == 0) {
-		return HxOverrides.substr(s,0,i);
-	}
-	return HxOverrides.substr(s,0,i + 1 + precision);
-};
-om_util_StringUtil.quote = function(str) {
-	if(str.indexOf("\"") < 0) {
-		return "\"" + str + "\"";
-	} else if(str.indexOf("'") < 0) {
-		return "'" + str + "'";
-	} else {
-		return "\"" + StringTools.replace(str,"\"","\\\"") + "\"";
-	}
-};
-om_util_StringUtil.removeLinebreaks = function(str) {
-	return str.split("\n").join("");
-};
-om_util_StringUtil.repeat = function(str,times) {
-	var _g = [];
-	var _g2 = 0;
-	while(_g2 < times) {
-		++_g2;
-		_g.push(str);
-	}
-	return _g.join("");
-};
-om_util_StringUtil.reverse = function(str) {
-	var a = str.split("");
-	a.reverse();
-	return a.join("");
-};
-om_util_StringUtil.split = function(str,delimiter) {
-	if(delimiter == null) {
-		delimiter = "";
-	}
-	return str.split(delimiter);
-};
-om_util_StringUtil.toArray = function(str,delimiter) {
-	if(delimiter == null) {
-		delimiter = "";
-	}
-	return str.split(delimiter);
-};
 var soda_App = function() { };
 soda_App.__name__ = true;
+soda_App.__interfaces__ = [om_App];
 soda_App.update = function(time) {
-	window;
-	window;
 	window.requestAnimationFrame(soda_App.update);
-	soda_App.dec.textContent = (soda_App.meter.dec | 0) + "";
-	soda_App.analyser.getByteFrequencyData(soda_App.frequencyData);
-	var volumeColor = "#000000";
-	if(soda_App.meter.dec > 0) {
-		volumeColor = "#ff0000";
-		soda_App.dec.textContent += "DB";
-	} else if(soda_App.meter.dec > -1) {
-		volumeColor = "#9C27B0";
-	}
-	window.document.body.style.background = volumeColor;
-	soda_App.frequencySpectrum.draw(soda_App.frequencyData);
+	soda_App.frequencyAnalyser.getByteFrequencyData(soda_App.frequencyData);
+	soda_App.waveformAnalyser.getFloatTimeDomainData(soda_App.waveformData);
+	soda_App.spectrum.draw(soda_App.frequencyData,soda_App.waveformData);
+	soda_App.info.textContent = (soda_App.meter.decibel | 0) + "";
 };
 soda_App.handleKeyDown = function(e) {
-	var _g = e.keyCode;
-	switch(_g) {
-	case 27:
-		soda_App.settings.hide();
-		break;
-	case 83:
-		soda_App.settings.toggle();
-		break;
-	}
 };
 soda_App.handleWindowResize = function(e) {
-	soda_App.frequencySpectrum.resize(window.innerWidth,window.innerHeight);
+	soda_App.spectrum.resize(window.innerWidth,window.innerHeight);
 };
 soda_App.fatalError = function(info) {
+	window.console.error(info);
 	window.document.body.innerHTML = "";
-	window.document.body.classList.add("error");
-	window.document.body.textContent = info;
+	var e = window.document.createElement("div");
+	e.id = "fatal-error";
+	e.textContent = info;
 };
 soda_App.init = function() {
-	window.document.body.removeEventListener("touchstart",soda_App.init);
-	if(soda_App.isMobile) {
-		window.document.documentElement.webkitRequestFullscreen();
-	}
-	soda_App.volume = window.document.getElementById("volume");
-	window.navigator.getUserMedia({ audio : true, video : false},function(stream) {
+	navigator.mediaDevices.getUserMedia({ audio : true}).then(function(stream) {
 		soda_App.audio = new AudioContext();
-		soda_App.analyser = soda_App.audio.createAnalyser();
-		soda_App.analyser.fftSize = 256;
-		soda_App.mic = soda_App.audio.createMediaStreamSource(stream);
-		soda_App.mic.connect(soda_App.analyser);
-		soda_App.bufferLength = soda_App.analyser.frequencyBinCount;
-		soda_App.frequencyData = new Uint8Array(soda_App.bufferLength);
-		soda_App.timeDomainData = new Uint8Array(soda_App.bufferLength);
-		soda_App.rms = window.document.getElementById("rms");
-		soda_App.vol = window.document.getElementById("vol");
-		soda_App.dec = window.document.getElementById("dec");
+		soda_App.frequencyAnalyser = soda_App.audio.createAnalyser();
+		soda_App.frequencyAnalyser.fftSize = 256;
+		soda_App.waveformAnalyser = soda_App.audio.createAnalyser();
+		soda_App.waveformAnalyser.fftSize = 2048;
+		soda_App.waveformAnalyser.connect(soda_App.frequencyAnalyser);
+		soda_App.frequencyData = new Uint8Array(soda_App.frequencyAnalyser.frequencyBinCount);
+		soda_App.waveformData = new Float32Array(soda_App.waveformAnalyser.frequencyBinCount);
+		soda_App.microphone = soda_App.audio.createMediaStreamSource(stream);
+		soda_App.microphone.connect(soda_App.waveformAnalyser);
 		soda_App.meter = new om_audio_VolumeMeter(soda_App.audio);
-		soda_App.mic.connect(soda_App.meter.processor);
+		soda_App.microphone.connect(soda_App.meter.processor);
 		window.addEventListener("resize",soda_App.handleWindowResize,false);
 		window.addEventListener("keydown",soda_App.handleKeyDown,false);
 		window.requestAnimationFrame(soda_App.update);
-	},function(e) {
-		console.log(e);
+	})["catch"](function(e) {
 		var info = e.name;
 		if(e.message.length > 0) {
 			info += ": " + Std.string(e.message);
@@ -984,84 +584,142 @@ soda_App.init = function() {
 	});
 };
 soda_App.main = function() {
-	var tmp = window.navigator.getUserMedia || window.navigator.webkitGetUserMedia || window.navigator.mozGetUserMedia;
-	window.navigator.getUserMedia = tmp;
 	window.onload = function() {
-		soda_App.settings = new soda_SettingsMenu();
-		soda_App.frequencySpectrum = new soda_gui_FrequencySpectrum();
-		window.document.body.appendChild(soda_App.frequencySpectrum.canvas);
-		if(om_System.isMobile()) {
-			window.document.body.addEventListener("touchstart",soda_App.init,false);
+		window.document.body.innerHTML = "";
+		window.document.addEventListener("contextmenu",function(e) {
+			e.preventDefault();
+		});
+		soda_App.isMobile = om_System.isMobile();
+		soda_App.spectrum = new soda_Spectrum();
+		window.document.body.appendChild(soda_App.spectrum.element);
+		soda_App.info = window.document.createElement("div");
+		soda_App.info.classList.add("info");
+		soda_App.info.textContent = "SODA";
+		window.document.body.appendChild(soda_App.info);
+		if(soda_App.isMobile) {
+			window.document.body.addEventListener("touchstart",function(e1) {
+				window.document.body.removeEventListener("touchstart",soda_App.init);
+				window.document.documentElement.webkitRequestFullscreen();
+				soda_App.init();
+			},false);
 		} else {
 			soda_App.init();
 		}
 	};
 };
-var soda_SettingsMenu = function() {
-	this.element = window.document.getElementById("settings");
-};
-soda_SettingsMenu.__name__ = true;
-soda_SettingsMenu.prototype = {
-	isVisible: function() {
-		return this.element.classList.contains("show");
-	}
-	,show: function() {
-		this.element.classList.remove("hide");
-		this.element.classList.add("show");
-	}
-	,hide: function() {
-		this.element.classList.remove("show");
-		this.element.classList.add("hide");
-	}
-	,toggle: function() {
-		console.log(this.isVisible());
-		if(this.isVisible()) {
-			this.hide();
-		} else {
-			this.show();
-		}
-	}
-	,__class__: soda_SettingsMenu
-};
-var soda_gui_FrequencySpectrum = function(color) {
-	if(color == null) {
-		color = "#fff";
-	}
-	this.color = color;
-	this.delay = 200;
-	this.canvas = window.document.getElementById("canvas");
+var soda_Spectrum = function() {
+	this.element = window.document.createElement("div");
+	this.element.classList.add("spectrum");
+	this.grid = window.document.createElement("canvas");
+	this.grid.classList.add("grid");
+	this.grid.width = window.innerWidth;
+	this.grid.height = window.innerHeight;
+	this.element.appendChild(this.grid);
+	this.canvas = window.document.createElement("canvas");
+	this.canvas.classList.add("spectrum");
 	this.canvas.width = window.innerWidth;
 	this.canvas.height = window.innerHeight;
-	this.context = this.canvas.getContext("2d",null);
-	this.resize(window.innerWidth,window.innerHeight);
+	this.element.appendChild(this.canvas);
+	this.ctx = this.canvas.getContext("2d",null);
+	this.drawGrid(36);
+	this.frequencyHistory = [];
 };
-soda_gui_FrequencySpectrum.__name__ = true;
-soda_gui_FrequencySpectrum.prototype = {
+soda_Spectrum.__name__ = true;
+soda_Spectrum.prototype = {
 	resize: function(width,height) {
-		this.canvas.width = width;
-		this.canvas.height = height;
-		this.context.lineWidth = 1;
-		this.context.fillStyle = this.color;
-		this.context.strokeStyle = this.color;
+		this.grid.width = this.canvas.width = width;
+		this.grid.height = this.canvas.height = height;
+		this.drawGrid(36);
 	}
-	,draw: function(data) {
-		this.context.clearRect(0,0,this.canvas.width,this.canvas.height);
-		var barWidth = this.canvas.width / data.length | 0;
+	,draw: function(frequency,waveform) {
+		this.ctx.clearRect(0,0,this.canvas.width,this.canvas.height);
+		var bw = this.canvas.width / waveform.length;
+		var px = 0.0;
+		this.ctx.strokeStyle = "rgb(90,90,90)";
+		this.ctx.beginPath();
+		var _g1 = 0;
+		var _g = waveform.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			var py = waveform[i] * this.canvas.height / 2 + this.canvas.height / 2;
+			if(i == 0) {
+				this.ctx.moveTo(px,py);
+			} else {
+				this.ctx.lineTo(px,py);
+			}
+			px += bw;
+		}
+		this.ctx.lineTo(this.canvas.width,this.canvas.height / 2);
+		this.ctx.stroke();
+		var copy = new Uint8Array(frequency.length);
+		var _g11 = 0;
+		var _g2 = frequency.length;
+		while(_g11 < _g2) {
+			var i1 = _g11++;
+			copy[i1] = frequency[i1];
+		}
+		this.frequencyHistory.push(copy);
+		if(this.frequencyHistory.length > 60) {
+			this.frequencyHistory.shift();
+		}
+		var frequencyMax = new Uint8Array(frequency.length);
+		var _g3 = 0;
+		var _g12 = this.frequencyHistory;
+		while(_g3 < _g12.length) {
+			var freq = _g12[_g3];
+			++_g3;
+			var _g31 = 0;
+			var _g21 = freq.length;
+			while(_g31 < _g21) {
+				var i2 = _g31++;
+				var va = freq[i2];
+				var vb = frequencyMax[i2];
+				if(va > vb) {
+					frequencyMax[i2] = va;
+				}
+			}
+		}
+		this.drawFrequency(frequencyMax,"rgba(40,40,40,0.8)");
+		this.drawFrequency(frequency,"rgb(230,230,230)");
+	}
+	,drawFrequency: function(data,color) {
+		var bw = this.canvas.width / data.length | 0;
+		var bh;
+		var px = 0.0;
+		this.ctx.beginPath();
+		this.ctx.fillStyle = color;
 		var _g1 = 0;
 		var _g = data.length;
 		while(_g1 < _g) {
 			var i = _g1++;
-			var v = data[i];
-			var percent = v / this.canvas.height;
-			var height = this.canvas.height * percent;
-			var offset = this.canvas.height - height - 1;
-			this.context.fillRect(i * barWidth,offset,barWidth,height);
+			bh = this.canvas.height * (data[i] / this.canvas.height);
+			this.ctx.fillRect(i * (bw + 1),this.canvas.height - bh,bw,bh);
 		}
 	}
-	,__class__: soda_gui_FrequencySpectrum
+	,drawGrid: function(dd) {
+		var ctx = this.grid.getContext("2d",null);
+		ctx.lineWidth = 1;
+		ctx.strokeStyle = "rgb(20,20,20)";
+		var _g1 = 0;
+		var _g = this.canvas.width / dd | 0;
+		while(_g1 < _g) {
+			var i = _g1++;
+			var px = i * dd;
+			ctx.moveTo(px,0);
+			ctx.lineTo(px,this.canvas.height);
+		}
+		var _g11 = 0;
+		var _g2 = this.canvas.height / dd | 0;
+		while(_g11 < _g2) {
+			var i1 = _g11++;
+			var py = i1 * dd;
+			ctx.moveTo(0,py);
+			ctx.lineTo(this.canvas.width,py);
+		}
+		ctx.stroke();
+	}
+	,__class__: soda_Spectrum
 };
-var $_, $fid = 0;
-function $bind(o,m) { if( m == null ) return null; if( m.__id__ == null ) m.__id__ = $fid++; var f; if( o.hx__closures__ == null ) o.hx__closures__ = {}; else f = o.hx__closures__[m.__id__]; if( f == null ) { f = function(){ return f.method.apply(f.scope, arguments); }; f.scope = o; f.method = m; o.hx__closures__[m.__id__] = f; } return f; }
 String.prototype.__class__ = String;
 String.__name__ = true;
 Array.__name__ = true;
@@ -1077,30 +735,12 @@ var ArrayBuffer = $global.ArrayBuffer || js_html_compat_ArrayBuffer;
 if(ArrayBuffer.prototype.slice == null) {
 	ArrayBuffer.prototype.slice = js_html_compat_ArrayBuffer.sliceImpl;
 }
+var Float32Array = $global.Float32Array || js_html_compat_Float32Array._new;
 var Uint8Array = $global.Uint8Array || js_html_compat_Uint8Array._new;
 js_Boot.__toStr = ({ }).toString;
+js_html_compat_Float32Array.BYTES_PER_ELEMENT = 4;
 js_html_compat_Uint8Array.BYTES_PER_ELEMENT = 1;
-om_Math.INT32_MAX = 2147483647;
-om_Math.INT16_MIN = -32768;
-om_Math.INT16_MAX = 32767;
-om_Math.UINT16_MAX = 65535;
-om_Math.E = 2.718281828459045;
-om_Math.EPSILON = 1e-10;
-om_Math.LN10 = 2.302585092994046;
-om_Math.LN2 = 0.6931471805599453;
-om_Math.LOG10E = 0.4342944819032518;
-om_Math.LOG2E = 1.4426950408889634;
-om_Math.PI = 3.141592653589793;
-om_Math.SQRT1_2 = 0.7071067811865476;
-om_Math.SQRT2 = 1.4142135623730951;
-om_Math.DEGREES_TO_RADIANS_FACTOR = 0.017453292519943295;
-om_Math.RADIANS_TO_DEGREES_FACTOR = 57.29577951308232;
 om_System.mobileUserAgents = ["Android","webOS","iPhone","iPad","iPod","BlackBerry","IEMobile","Opera Mini"];
-soda_App.COLOR_VOLUME_QUIET = "#999999";
-soda_App.COLOR_VOLUME_OK = "#000000";
-soda_App.COLOR_VOLUME_WARN = "#9C27B0";
-soda_App.COLOR_VOLUME_LOUD = "#ff0000";
-soda_App.isMobile = om_System.isMobile();
 soda_App.main();
 })(typeof window != "undefined" ? window : typeof global != "undefined" ? global : typeof self != "undefined" ? self : this);
 

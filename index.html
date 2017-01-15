@@ -3,19 +3,23 @@
 	<head>
 
 		<meta charset="utf-8">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="mobile-web-app-capable" content="yes">
 		<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=0"/>
 		<meta name="theme-color" content="#000000">
-		<meta name="apple-mobile-web-app-capable" content="yes">
-        <meta name="mobile-web-app-capable" content="yes">
 
 		<title>SODA</title>
 
 		<link rel="manifest" href="manifest.json">
 
-		<link href="icon/soda-128.png" rel="icon" sizes="128x128" />
+		<link href="icon/soda-48.png" rel="icon" sizes="48x48" />
+		<link href="icon/soda-72.png" rel="icon" sizes="72x72" />
+		<link href="icon/soda-96.png" rel="icon" sizes="96x96" />
 		<link href="icon/soda-144.png" rel="icon" sizes="144x144" />
 		<link href="icon/soda-192.png" rel="icon" sizes="192x192" />
 		<link href="icon/soda-512.png" rel="icon" sizes="512x512" />
+
+		<link rel="shortcut icon" href="icon/favicon.png">
 
 		<link rel="stylesheet" href="soda.css" media="screen">
 
@@ -23,22 +27,6 @@
 
 	</head>
 
-	<body>
-
-		<div id="volume">
-			<div id="vol"></div>
-			<div id="dec"></div>
-			<div id="rms"></div>
-		</div>
-
-		<div id="settings" class="hide">
-			<input type="number" name="fft" value="256">
-			<input type="number" name="volume_warn" value="0">
-			<input type="number" name="volume_clip" value="2">
-		</div>
-
-		<canvas id="canvas"></canvas>
-
-	</body>
+	<body id="soda">SODA</body>
 
 </html>
