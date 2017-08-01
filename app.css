@@ -23,19 +23,38 @@ body {
   height: 100%;
 }
 #fatal-error {
-  background: #D50000;
-  color: #FFEBEE;
-  margin: 10px;
+  width: 100%;
+  height: 100%;
+  padding: 10px 20px 10px 20px;
   font-family: 'Helvetica Neue';
   font-size: 40px;
   letter-spacing: -2px;
+  background: #F44336;
+  color: #FFEBEE;
+}
+#soda #error.activity {
+  width: 100%;
+  height: 100%;
+  padding: 10px 10px 10px 20px;
+  font-size: 60px;
+  background: #F44336;
+  color: #fff;
+}
+#soda .spectrum3D {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 2;
+  -webkit-user-select: none;
 }
 #soda .spectrum {
   position: fixed;
   top: 0;
   right: 0;
   bottom: 0;
-  left: 0;
+  left: 0px;
   z-index: 1;
   -webkit-user-select: none;
 }
@@ -45,23 +64,46 @@ body {
   width: 100%;
   height: 100%;
 }
+#soda .volumebar {
+  position: fixed;
+  top: 0px;
+  right: 0px;
+  bottom: 0px;
+  z-index: 100;
+  width: 40px;
+  height: 100%;
+  /*
+        .bar {
+            width: 60px;
+            height: 100%;
+            background: #00ff00;
+        }
+        */
+}
 #soda .info {
   position: fixed;
-  right: 6px;
-  bottom: -10px;
+  top: 10px;
+  right: 10px;
   font-family: Helvetica;
-  font-size: 80px;
+  font-size: 60px;
   letter-spacing: -3px;
   color: #e6e6e6;
   mix-blend-mode: exclusion;
-  z-index: 2;
+  z-index: 101;
   -webkit-user-select: none;
+}
+#soda .noise {
+  position: fixed;
+  background: #000;
+  width: 100%;
+  height: 100px;
+  z-index: 10;
 }
 #soda .settings {
   position: fixed;
   background: #000;
   width: 200px;
   height: 100%;
-  z-index: 3;
+  z-index: 100;
   display: none;
 }
