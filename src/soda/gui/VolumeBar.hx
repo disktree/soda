@@ -1,4 +1,4 @@
-package soda;
+package soda.gui;
 
 import js.Browser.document;
 import js.Browser.window;
