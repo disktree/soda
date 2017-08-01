@@ -11,6 +11,7 @@ import js.html.MediaStream;
 import js.html.audio.MediaStreamAudioSourceNode;
 import om.audio.VolumeMeter;
 import soda.gui.Spectrum;
+import soda.gui.VolumeBar;
 
 class MainActivity extends om.Activity {
 
