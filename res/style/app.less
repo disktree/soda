@@ -1,7 +1,9 @@
 
+//@background-color: #e0e0e0;
+//@foreground-color: #0c0c0c;
 @background-color: #0c0c0c;
 @foreground-color: #e0e0e0;
-@error-color: #D50000;
+@error-color: #F44336;
 
 
 @font-face{
@@ -11,7 +13,7 @@
     font-style: normal;
 }
 
-html,body {
+html, body {
 	width: 100%;
 	height: 100%;
 	margin: 0;
@@ -40,15 +42,46 @@ body {
 }
 
 #fatal-error {
-    background: @error-color;
-    color: #FFEBEE;
-    margin: 10px;
+
+    width: 100%;
+    height: 100%;
+    padding: 10px 20px 10px 20px;
+
     font-family: 'Helvetica Neue';
     font-size: 40px;
     letter-spacing: -2px;
+
+    background: @error-color;
+    color: #FFEBEE;
 }
 
+
 #soda {
+
+    #error.activity {
+
+        width: 100%;
+        height: 100%;
+        padding: 10px 10px 10px 20px;
+
+        font-size: 60px;
+
+        background: @error-color;
+        color: #fff;
+    }
+
+    .spectrum3D {
+
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+
+        z-index: 2;
+
+        -webkit-user-select: none;
+    }
 
     .spectrum {
 
@@ -56,7 +89,7 @@ body {
         top: 0;
         right: 0;
         bottom: 0;
-        left: 0;
+        left: 0px;
 
         z-index: 1;
 
@@ -73,22 +106,55 @@ body {
         }
     }
 
+    .volumebar {
+
+        position: fixed;
+        top: 0px;
+        right: 0px;
+        bottom: 0px;
+
+        z-index: 100;
+
+        width: 40px;
+        height: 100%;
+
+        /*
+        .bar {
+            width: 60px;
+            height: 100%;
+            background: #00ff00;
+        }
+        */
+    }
+
     .info {
 
         position: fixed;
-        right: 6px;
-        bottom: -10px;
+        top: 10px;
+        right: 10px;
 
         font-family: Helvetica;
-        font-size: 80px;
+        font-size: 60px;
         letter-spacing: -3px;
 
         color: rgba(230,230,230,1.0);
         mix-blend-mode: exclusion;
 
-        z-index: 2;
+        z-index: 101;
 
         -webkit-user-select: none;
+    }
+
+    .recorder {
+    }
+
+    .noise {
+        position: fixed;
+        background: #000;
+        width: 100%;
+        height: 100px;
+
+        z-index: 10;
     }
 
     .settings {
@@ -98,7 +164,7 @@ body {
         width: 200px;
         height: 100%;
 
-        z-index: 3;
+        z-index: 100;
 
         display: none;
     }

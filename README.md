@@ -1,4 +1,5 @@
 
-# SODA
+SODA - Sound Data Analyzer
+====
 
-SOund DAta analyzer | https://tong.github.io/soda/
+https://tong.github.io/soda/

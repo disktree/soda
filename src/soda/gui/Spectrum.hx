@@ -1,4 +1,4 @@
-package soda;
+package soda.gui;
 
 import js.Browser.document;
 import js.Browser.window;
@@ -12,14 +12,18 @@ class Spectrum {
 
     public var element(default,null) : DivElement;
 
+    /**/
+    public var peakDelay(default,null) : Int;
+
+    var frequencyHistory : Array<Uint8Array>;
+    //var frequencyMax : Uint8Array;
     var grid : CanvasElement;
     var canvas : CanvasElement;
     var ctx : CanvasRenderingContext2D;
 
-    var frequencyHistory : Array<Uint8Array>;
-    //var frequencyMax : Uint8Array;
+    public function new( peakDelay = 60 ) {
 
-    public function new() {
+        this.peakDelay = peakDelay;
 
         element = document.createDivElement();
         element.classList.add( 'spectrum' );
@@ -38,7 +42,7 @@ class Spectrum {
 
         ctx = canvas.getContext2d();
 
-        drawGrid( 36 );
+        drawGrid( 128 );
 
         frequencyHistory = [];
     }
@@ -46,32 +50,38 @@ class Spectrum {
     public function resize( width : Int, height : Int ) {
         grid.width = canvas.width = width;
         grid.height = canvas.height = height;
-        drawGrid( 36 );
+        drawGrid( 128 );
     }
 
-    public function draw( frequency : Uint8Array, waveform : Float32Array ) {
+    public function draw( frequency : Uint8Array, waveform : Uint8Array ) {
 
         ctx.clearRect( 0, 0, canvas.width, canvas.height );
 
         var bw = canvas.width / waveform.length;
         var px = 0.0;
+        var py = 0.0;
 
         ///// Draw waveform
 
-        ctx.strokeStyle = 'rgb(90,90,90)';
+        var ctx = canvas.getContext2d();
+        ctx.clearRect( 0, 0, canvas.width, canvas.height );
+        ctx.save();
         ctx.beginPath();
-
+        ctx.strokeStyle = 'rgba(90,90,90,0.5)';
+        ctx.lineWidth = 2;
+        var sw = canvas.width / waveform.length;
+        var px = 0.0;
+        var py : Float;
         for( i in 0...waveform.length ) {
-            var py = waveform[i] * canvas.height / 2 + (canvas.height/2);
+            py = (waveform[i] / 128) * canvas.height / 2;
             if( i == 0) {
                 ctx.moveTo( px, py );
             } else {
                 ctx.lineTo( px, py );
             }
-            px += bw;
+            px += sw;
         }
-
-        ctx.lineTo( canvas.width, canvas.height/2 );
+        ctx.lineTo( canvas.width, canvas.height / 2 );
         ctx.stroke();
 
         ///// Draw history peaks
@@ -79,7 +89,7 @@ class Spectrum {
         var copy = new Uint8Array( frequency.length );
         for( i in 0...frequency.length ) copy[i] = frequency[i];
         frequencyHistory.push( copy );
-        if( frequencyHistory.length > 60 ) frequencyHistory.shift();
+        if( frequencyHistory.length > peakDelay ) frequencyHistory.shift();
 
         var frequencyMax = new Uint8Array( frequency.length );
         for( freq in frequencyHistory ) {
@@ -89,11 +99,11 @@ class Spectrum {
                 if( va > vb ) frequencyMax[i] = va;
             }
         }
-        drawFrequency( frequencyMax, 'rgba(40,40,40,0.8)' );
+        drawFrequency( frequencyMax, 'rgba(40,40,40,1)' );
 
         ///// Draw frequency
 
-        drawFrequency( frequency, 'rgb(230,230,230)' );
+        drawFrequency( frequency, 'rgba(230,230,230,1)' );
     }
 
     function drawFrequency( data : Uint8Array, color : String ) {
@@ -107,7 +117,7 @@ class Spectrum {
 
         for( i in 0...data.length ) {
             bh = canvas.height * (data[i] / canvas.height);
-            ctx.fillRect( i * (bw + 1), canvas.height - bh, bw, bh );
+            ctx.fillRect( i * (bw+1), canvas.height - bh, bw, bh );
         }
     }
 
@@ -115,13 +125,14 @@ class Spectrum {
         var ctx = grid.getContext2d();
         ctx.lineWidth = 1;
         ctx.strokeStyle = 'rgb(20,20,20)';
-        for( i in 0...Std.int( canvas.width/dd) ) {
-            var px = i * dd;
+        var fieldSize = canvas.width / dd;
+        for( i in 0...dd ) {
+            var px = i * fieldSize;
             ctx.moveTo( px, 0 );
             ctx.lineTo( px, canvas.height );
         }
-        for( i in 0...Std.int( canvas.height/dd) ) {
-            var py = i * dd;
+        for( i in 0...Std.int( canvas.height/fieldSize) ) {
+            var py = i * fieldSize;
             ctx.moveTo( 0, py );
             ctx.lineTo( canvas.width, py );
         }
