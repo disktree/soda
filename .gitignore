@@ -1,3 +1,4 @@
 *.zip
 _*
-bin/
+bin/app.css
+bin/app.js*

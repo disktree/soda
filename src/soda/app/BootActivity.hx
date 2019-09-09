@@ -1,29 +1,45 @@
 package soda.app;
 
-class BootActivity extends om.Activity {
+import js.Browser.document;
+
+class BootActivity extends om.app.Activity {
 
     override function onCreate() {
         super.onCreate();
-        element.textContent = 'Booting ...';
     }
 
     override function onStart() {
 
-        super.onStart();
+        var deviceId = 'default';
+
+        document.title = 'SODA';
 
         /*
-        //TODO
-        om.audio.Device.get().then( (devices)->{
+        var select = document.createSelectElement();
+        om.audio.Device.get().then( (devices:Array<Dynamic>)->{
             trace(devices);
+            for( dev in devices ) {
+                trace(dev);
+                switch dev.kind {
+                case 'audioinput':
+                    var opt = document.createOptionElement();
+                    opt.textContent = dev.label;
+                    select.appendChild( opt );
+                }
+            }
         });
+        select.onchange = function(e){
+            trace(e);
+        }
+        element.appendChild( select );
         */
 
-        var audio = new js.html.audio.AudioContext();
-
-        om.audio.Microphone.get().then( function(stream){
-            replace( new MainActivity( audio, stream ) );
+        om.audio.Microphone.get( deviceId ).then( function(stream){
+            replace( new MainActivity( stream ) );
         }).catchError( e->{
             replace( new ErrorActivity( e ) );
         } );
+
+        return super.onStart();
     }
 }

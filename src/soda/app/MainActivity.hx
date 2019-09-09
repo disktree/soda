@@ -3,17 +3,17 @@ package soda.app;
 import js.Browser.document;
 import js.Browser.window;
 import js.html.DivElement;
-import js.html.Float32Array;
-import js.html.Uint8Array;
+import js.html.MediaStream;
 import js.html.audio.AudioContext;
 import js.html.audio.AnalyserNode;
-import js.html.MediaStream;
 import js.html.audio.MediaStreamAudioSourceNode;
+import js.lib.Float32Array;
+import js.lib.Uint8Array;
 import om.audio.VolumeMeter;
 import soda.gui.Spectrum;
 import soda.gui.VolumeBar;
 
-class MainActivity extends om.Activity {
+class MainActivity extends om.app.Activity {
 
     var frameId : Int;
     var microphone : MediaStreamAudioSourceNode;
@@ -28,10 +28,13 @@ class MainActivity extends om.Activity {
     var volumeBar : VolumeBar;
     var spectrum : Spectrum;
     //var settings : SettingsMenu;
+    //var spectrum3D : soda.gui.Spectrum3D;
 
-    public function new( audio : AudioContext, stream : MediaStream ) {
+    public function new( stream : MediaStream ) {
 
         super();
+
+        var audio = new AudioContext();
 
         frequencyAnalyser = audio.createAnalyser();
         frequencyAnalyser.fftSize = 128;
@@ -62,6 +65,9 @@ class MainActivity extends om.Activity {
         spectrum = new Spectrum();
         element.appendChild( spectrum.element );
 
+       // spectrum3D = new soda.gui.Spectrum3D();
+       // element.appendChild( spectrum3D.canvas );
+
         volumeBar = new VolumeBar();
         element.appendChild( volumeBar.element );
 
@@ -72,12 +78,13 @@ class MainActivity extends om.Activity {
 
     override function onStart() {
 
-        super.onStart();
 
         frameId = window.requestAnimationFrame( update );
 
         document.addEventListener( 'webkitvisibilitychange', handlePageVisibilityChange, false );
         window.addEventListener( 'resize', handleWindowResize, false );
+
+        return super.onStart();
 
         /*
         //var noise = new NoiseGenerator( audio );
@@ -107,12 +114,12 @@ class MainActivity extends om.Activity {
 
     override function onStop() {
 
-        super.onStop();
-
         window.cancelAnimationFrame( frameId );
 
         document.removeEventListener( 'webkitvisibilitychange', handlePageVisibilityChange );
         window.removeEventListener( 'resize', handleWindowResize );
+        
+		return super.onStop();
     }
 
     function update( time : Float ) {

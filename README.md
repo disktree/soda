@@ -2,4 +2,5 @@
 SODA - Sound Data Analyzer
 ====
 
-https://tong.github.io/soda/
+https://disktree.net/app/soda
+

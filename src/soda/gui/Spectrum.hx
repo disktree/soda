@@ -5,8 +5,8 @@ import js.Browser.window;
 import js.html.DivElement;
 import js.html.CanvasElement;
 import js.html.CanvasRenderingContext2D;
-import js.html.Uint8Array;
-import js.html.Float32Array;
+import js.lib.Uint8Array;
+import js.lib.Float32Array;
 
 class Spectrum {
 

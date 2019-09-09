@@ -1,6 +1,6 @@
 package soda.app;
 
-class ErrorActivity extends om.Activity {
+class ErrorActivity extends om.app.Activity {
 
     var error : String;
 

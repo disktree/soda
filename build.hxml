@@ -1,4 +1,4 @@
--js bin/soda.js
+-js bin/app.js
 -main soda.App
 -lib om.activity
 -lib om.app
@@ -6,11 +6,4 @@
 -lib om.three
 -dce full
 -debug
-
-#--macro Build.App()
-#-cmd lessc res/style/soda.less bin/soda.css
-#-cmd cp res/html/index.html bin/
-#-cmd cp res/script/three.min.js bin/
-#-cmd cp res/web/manifest.json bin/
-#-cmd cp -r res/font bin/
-#-cmd cp -r res/icon bin/
+-cmd lessc res/style/index.less bin/app.css
