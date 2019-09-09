@@ -3,6 +3,7 @@
 -lib om.activity
 -lib om.app
 -lib om.audio
+-lib om.dom
 -lib om.three
 -dce full
 -debug

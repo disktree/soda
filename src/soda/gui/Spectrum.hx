@@ -1,13 +1,5 @@
 package soda.gui;
 
-import js.Browser.document;
-import js.Browser.window;
-import js.html.DivElement;
-import js.html.CanvasElement;
-import js.html.CanvasRenderingContext2D;
-import js.lib.Uint8Array;
-import js.lib.Float32Array;
-
 class Spectrum {
 
     public var element(default,null) : DivElement;
@@ -50,7 +42,7 @@ class Spectrum {
     public function resize( width : Int, height : Int ) {
         grid.width = canvas.width = width;
         grid.height = canvas.height = height;
-        drawGrid( 128 );
+        drawGrid( 32 );
     }
 
     public function draw( frequency : Uint8Array, waveform : Uint8Array ) {

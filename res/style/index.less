@@ -10,7 +10,6 @@ html, body {
 	height: 100%;
 	margin: 0;
 	font-family: monospace;
-	//font-size: 11px;
 }
 
 body {
@@ -56,53 +55,41 @@ body {
     }
 
     .spectrum3D {
-
         position: fixed;
         top: 0;
         right: 0;
         bottom: 0;
         left: 0;
-
         z-index: 2;
-
-        -webkit-user-select: none;
+        user-select: none;
     }
 
     .spectrum {
-
         position: fixed;
         top: 0;
         right: 0;
         bottom: 0;
-        left: 0px;
-
+        left: 0;
         z-index: 1;
-
-        -webkit-user-select: none;
-
+        user-select: none;
         canvas.grid, canvas {
             position: absolute;
             width: 100%;
             height: 100%;
         }
-
         canvas.grid {
             //background: #00ff00;
         }
     }
 
     .volumebar {
-
         position: fixed;
         top: 0px;
         right: 0px;
         bottom: 0px;
-
         z-index: 100;
-
         width: 40px;
         height: 100%;
-
         /*
         .bar {
             width: 60px;
@@ -117,6 +104,7 @@ body {
         position: fixed;
         top: 10px;
         right: 10px;
+        z-index: 101;
 
         font-family: Helvetica;
         font-size: 60px;
@@ -125,12 +113,12 @@ body {
         color: rgba(230,230,230,1.0);
         mix-blend-mode: exclusion;
 
-        z-index: 101;
-
-        -webkit-user-select: none;
+        user-select: none;
     }
 
     .recorder {
+		position: fixed;
+		z-index: 1000;
     }
 
     .noise {

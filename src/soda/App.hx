@@ -1,7 +1,5 @@
 package soda;
 
-import js.Browser.document;
-import js.Browser.window;
 import om.app.Activity;
 
 class App implements om.App {
