@@ -1,5 +1,6 @@
 package soda.app;
 
+import js.html.audio.GainNode;
 import js.Browser.document;
 import js.Browser.window;
 import js.html.DivElement;
@@ -10,18 +11,24 @@ import js.html.audio.MediaStreamAudioSourceNode;
 import js.lib.Float32Array;
 import js.lib.Uint8Array;
 import om.audio.VolumeMeter;
+import om.audio.generator.Noise;
 import soda.gui.Spectrum;
 import soda.gui.VolumeBar;
 
 class MainActivity extends om.app.Activity {
 
     var frameId : Int;
+
+    var audio : AudioContext;
+    var gain : GainNode;
     var microphone : MediaStreamAudioSourceNode;
     var frequencyAnalyser : AnalyserNode;
     var waveformAnalyser : AnalyserNode;
+
     var frequencyData : Uint8Array;
 	var waveformData : Uint8Array;
 	//var waveformData : Float32Array;
+
     var meter : VolumeMeter;
 
     var info : DivElement;
@@ -30,33 +37,54 @@ class MainActivity extends om.app.Activity {
     //var settings : SettingsMenu;
     //var spectrum3D : soda.gui.Spectrum3D;
 
+	var noiseGenerator : NoiseGenerator;
+
     public function new( stream : MediaStream ) {
 
         super();
 
-        var audio = new AudioContext();
+        audio = new AudioContext();
+
+		gain = audio.createGain();
+        gain.gain.value = 0.5;
+        gain.connect( audio.destination );
 
         frequencyAnalyser = audio.createAnalyser();
-        frequencyAnalyser.fftSize = 128;
+        //frequencyAnalyser.fftSize = 128;
         //analyser.minDecibels = -100;
         //analyser.maxDecibels = -30;
-        //frequencyAnalyser.connect( audio.destination );
+        frequencyAnalyser.connect( gain );
 
         waveformAnalyser = audio.createAnalyser();
-        waveformAnalyser.fftSize = 1024;
+        waveformAnalyser.fftSize = 2048;
         //waveformAnalyser.smoothingTimeConstant = 0.1;
         waveformAnalyser.connect( frequencyAnalyser );
 
         frequencyData = new Uint8Array( frequencyAnalyser.frequencyBinCount );
         //waveformData = new Float32Array( waveformAnalyser.frequencyBinCount );
         waveformData = new Uint8Array( waveformAnalyser.frequencyBinCount );
-
+		
         microphone = audio.createMediaStreamSource( stream );
         microphone.connect( waveformAnalyser );
 
         meter = new om.audio.VolumeMeter( audio );
         microphone.connect( meter.processor );
-    }
+
+		//noiseGenerator = new NoiseGenerator( audio );
+		//noiseGenerator.pink = true;
+		//noiseGenerator.brown = true;
+		//noiseGenerator.white = true;
+	/*
+		var noiseBufferSize = 4096;
+		 var brownNoise = audio.createScriptProcessor( noiseBufferSize, 1, 1 );
+    		brownNoise.onaudioprocess = function(e) {
+                Noise.generateBrownNoise( e.outputBuffer.getChannelData(0), noiseBufferSize );
+                //dirtySpectrum = true;
+            };
+		brownNoise.connect( audio.destination  );
+    */
+
+	}
 
     override function onCreate() {
 

@@ -42,7 +42,7 @@ class Spectrum {
 
         ctx = canvas.getContext2d();
 
-        drawGrid( 128 );
+        drawGrid( 32 );
 
         frequencyHistory = [];
     }
